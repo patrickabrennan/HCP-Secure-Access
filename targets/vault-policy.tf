@@ -1,0 +1,65 @@
+resource "vault_policy" "boundary_controller_policy" {
+  name   = "boundary-controller"
+  policy = <<EOT
+path "auth/token/lookup-self" {
+  capabilities = ["read"]
+}
+
+path "auth/token/renew-self" {
+  capabilities = ["update"]
+}
+
+path "auth/token/revoke-self" {
+  capabilities = ["update"]
+}
+
+path "sys/leases/renew" {
+  capabilities = ["update"]
+}
+
+path "sys/leases/revoke" {
+  capabilities = ["update"]
+}
+
+path "sys/capabilities-self" {
+  capabilities = ["update"]
+}
+EOT
+}
+
+resource "vault_policy" "kv-policy" {
+  name   = "kv-read"
+  policy = <<EOT
+path "kv/*" {
+  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+}
+EOT
+}
+
+resource "vault_policy" "policy-database" {
+  name   = "policy-database"
+  policy = <<EOT
+path "database/creds/dba" {
+  capabilities = ["read"]
+}
+EOT
+}
+
+resource "vault_policy" "ssh-policy" {
+  name   = "ssh-policy"
+  policy = <<EOT
+path "ssh-client-signer/sign/boundary-client" {
+  capabilities = ["create","read","update","delete","list","sudo"]
+}
+EOT
+}
+
+resource "vault_policy" "policy_windows_rdp" {
+  name   = "policy-windows-rdp"
+  policy = <<-EOT
+  path "kv-rdp/boundary/rdp/svc" {
+    capabilities = ["read"]
+  }
+  EOT
+}
+
