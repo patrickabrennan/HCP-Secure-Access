@@ -35,7 +35,7 @@ resource "aws_iam_access_key" "boundary_dynamic_host_catalog" {
 # before handing credentails off to boundary.
 
 resource "time_sleep" "boundary_dynamic_host_catalog_user_ready" {
-  create_duration = "300s"
+  create_duration = "90s"
 
   depends_on = [
     aws_iam_user.boundary_dynamic_host_catalog,
