@@ -20,10 +20,10 @@ output "project_scope_id" {
 # Boundary Vault credential libraries
 ############################################
 
-output "rdp_credential_library_id" {
-  description = "Boundary Vault credential library for Windows RDP injection"
-  value       = boundary_credential_library_vault.rdp_vault_creds.id
-}
+#output "rdp_credential_library_id" {
+#  description = "Boundary Vault credential library for Windows RDP injection"
+#  value       = boundary_credential_library_vault.rdp_vault_creds.id
+#}
 
 # Optional: expose SSH or DB credential libraries if targets need them
 # output "ssh_credential_library_id" {
