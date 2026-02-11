@@ -41,7 +41,7 @@ output "rdp_credential_library_id" {
 #output "vpc_id" {
 #  description = "VPC ID used by Boundary targets"
 #  value       = aws_vpc.main.id
-3}
+#}
 
 #output "public_subnet_ids" {
 #  description = "Public subnet IDs for target instances"
