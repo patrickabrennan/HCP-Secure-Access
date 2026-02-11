@@ -1,6 +1,6 @@
-#aws_region = "us-east-1"
-#availability_zone = "us-east-1a"
-#availability_zone2 = "us-east-1b"
+aws_region = "us-east-1"
+availability_zone = "us-east-1a"
+availability_zone2 = "us-east-1b"
 
 aws_ami = "ami-070b7c2988d4e2c89"
  
