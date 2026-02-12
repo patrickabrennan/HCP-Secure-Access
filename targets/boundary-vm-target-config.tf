@@ -143,7 +143,7 @@ resource "boundary_host_set_plugin" "aws_db" {
   })
 
 
-  preferred_endpoints = ["private_ip"]
+  #preferred_endpoints = ["private_ip"]
 
   sync_interval_seconds = 30
 }
@@ -159,7 +159,7 @@ resource "boundary_host_set_plugin" "aws_dev" {
 
 
 
-  preferred_endpoints = ["private_ip"]
+  #preferred_endpoints = ["private_ip"]
 
   sync_interval_seconds = 30
 }
@@ -173,7 +173,7 @@ resource "boundary_host_set_plugin" "aws_prod" {
     filters = ["tag:application=production"]
   })
 
-  preferred_endpoints = ["private_ip"]
+  #preferred_endpoints = ["private_ip"]
 
   sync_interval_seconds = 30
 }
