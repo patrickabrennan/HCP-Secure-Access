@@ -82,3 +82,8 @@ output "boundary_discovery_role_arn" {
   value       = aws_iam_role.boundary_discovery_role.arn
 }
 
+output "rds_sg_id" {
+  description = "Security group for RDS used by targets workspace"
+  value       = aws_security_group.rds.id
+}
+
