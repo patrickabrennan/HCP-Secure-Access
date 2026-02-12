@@ -32,15 +32,8 @@ sudo bash -c 'echo TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem >> /etc/s
 sudo bash -c 'systemctl restart sshd.service'
 EOF
 
-  #9/28/2025 change from network_interface to primary_network_interface per TF warning message
-  #primary_network_interface {
-  #  network_interface_id = aws_network_interface.boundary_public_target_ni.id
-  #  #device_index         = 0
-  #}
-  network_interface {
-    network_interface_id = aws_network_interface.boundary_public_target_ni.id
-    device_index         = 0
-  }
+  primary_network_interface_id = aws_network_interface.boundary_public_target_ni.id
+
   tags = {
     Name         = "boundary-1-dev",
     service-type = "database",
@@ -57,30 +50,3 @@ resource "aws_network_interface" "boundary_public_target_ni" {
   private_ip_list_enabled = false
 }
 
-//Configure the EC2 host to trust Vault as the CA
-#data "cloudinit_config" "ssh_trusted_ca" {
-#  gzip          = false
-#  base64_encode = true
-
-#  part {
-#    content_type = "text/x-shellscript"
-#    content      = <<-EOF
-#    #!/bin/bash
-#    sudo bash -c 'curl -o /etc/ssh/trusted-user-ca-keys.pem \
-#    --header "X-Vault-Namespace: admin" \
-#    -X GET \
-#    ${var.vault_addr}/v1/ssh-client-signer/public_key'
-#    sudo bash -c 'echo TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem >> /etc/ssh/sshd_config'
-#    sudo bash -c 'systemctl restart sshd.service'
-#    EOF
-#  }
-
-#  part {
-#    content_type = "text/x-shellscript"
-#    content      = <<-EOF
-#    #!/bin/bash
-#    sudo bash -c 'adduser admin_user'
-#    sudo nash -c 'adduser danny'
-#    EOF
-#  }
-#}
