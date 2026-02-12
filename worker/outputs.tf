@@ -77,3 +77,8 @@ output "project_scope_id" {
   value       = boundary_scope.project.id
 }
 
+output "boundary_discovery_role_arn" {
+  description = "Role ARN used by targets Boundary AWS plugin (AssumeRole)"
+  value       = aws_iam_role.boundary_discovery_role.arn
+}
+
