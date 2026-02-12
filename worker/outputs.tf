@@ -77,13 +77,30 @@ output "project_scope_id" {
   value       = boundary_scope.project.id
 }
 
-output "boundary_discovery_role_arn" {
-  description = "Role ARN used by targets Boundary AWS plugin (AssumeRole)"
-  value       = aws_iam_role.boundary_discovery_role.arn
-}
 
 output "rds_sg_id" {
   description = "Security group for RDS used by targets workspace"
   value       = aws_security_group.rds.id
+}
+
+#added output items
+output "boundary_discovery_role_arn" {
+  value = aws_iam_role.boundary_discovery_role.arn
+}
+
+output "boundary_db_demo_subnet_id" {
+  value = aws_subnet.boundary_db_demo_subnet.id
+}
+
+output "boundary_db_demo_subnet2_id" {
+  value = aws_subnet.boundary_db_demo_subnet2.id
+}
+
+output "allow_all_sg_id" {
+  value = aws_security_group.allow_all.id
+}
+
+output "rds_sg_id" {
+  value = aws_security_group.rds.id
 }
 
