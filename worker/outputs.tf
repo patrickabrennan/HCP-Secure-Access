@@ -78,10 +78,10 @@ output "project_scope_id" {
 }
 
 
-output "rds_sg_id" {
-  description = "Security group for RDS used by targets workspace"
-  value       = aws_security_group.rds.id
-}
+#output "rds_sg_id" {
+#  description = "Security group for RDS used by targets workspace"
+#  value       = aws_security_group.rds.id
+#}
 
 #added output items
 output "boundary_discovery_role_arn" {
