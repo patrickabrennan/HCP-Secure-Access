@@ -22,7 +22,9 @@ resource "boundary_host_catalog_plugin" "aws_plugin" {
   attributes_json = jsonencode({
     region = var.aws_region
 
-    role_arn = aws_iam_role.boundary_discovery_role.arn
+    #role_arn = aws_iam_role.boundary_discovery_role.arn
+    role_arn = local.boundary_discovery_role_arn
+
     # Prevent Boundary from trying to rotate creds
     disable_credential_rotation = true
   })
