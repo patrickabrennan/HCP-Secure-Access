@@ -32,7 +32,7 @@ sudo bash -c 'echo TrustedUserCAKeys /etc/ssh/trusted-user-ca-keys.pem >> /etc/s
 sudo bash -c 'systemctl restart sshd.service'
 EOF
 
-  primary_network_interface_id = aws_network_interface.boundary_public_target_ni.id
+  #primary_network_interface_id = aws_network_interface.boundary_public_target_ni.id
 
   tags = {
     Name         = "boundary-1-dev",
@@ -42,11 +42,15 @@ EOF
 }
 
 resource "aws_network_interface" "boundary_public_target_ni" {
-  #subnet_id               = aws_subnet.boundary_db_demo_subnet.id
-  #security_groups         = [aws_security_group.allow_all.id]
   subnet_id       = local.boundary_db_demo_subnet_id
-  #security_groups = [local.allow_all_sg_id]
   security_groups = [local.boundary_target_sg_id]
+  
   private_ip_list_enabled = false
+}
+
+resource "aws_network_interface_attachment" "boundary_public_target_attach" {
+  instance_id          = aws_instance.boundary_public_target.id
+  network_interface_id = aws_network_interface.boundary_public_target_ni.id
+  device_index         = 0
 }
 
