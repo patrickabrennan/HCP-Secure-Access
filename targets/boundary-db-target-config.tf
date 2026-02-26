@@ -31,6 +31,9 @@ resource "boundary_target" "dba" {
     boundary_host_set_static.db_static_host_set.id
   ]
 
+  #added ingress worker filter 2/26/2026
+  ingress_worker_filter = "\"self-managed-aws-worker\" in \"/tags/type\""
+
   brokered_credential_source_ids = [
     boundary_credential_library_vault.vault_cred_lib.id
   ]
