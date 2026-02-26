@@ -4,10 +4,17 @@ resource "vault_token" "boundary_vault_token" {
   #commnet out 9-25-2025
   #policies     = ["boundary-controller", "ssh-policy", "policy-database"]
   #end comment out and add 9-25-2025
+  
+  #policies = [
+  #  "boundary-controller",
+  #  "ssh-policy",
+  #  "policy-database",
+  #  vault_policy.policy_windows_rdp.name,
+  #]
   policies = [
-    "boundary-controller",
-    "ssh-policy",
-    "policy-database",
+    vault_policy.boundary_controller_policy.name,
+    vault_policy.ssh-policy.name,
+    vault_policy.policy-database.name,
     vault_policy.policy_windows_rdp.name,
   ]
   #end add 9-25-2025
@@ -15,7 +22,15 @@ resource "vault_token" "boundary_vault_token" {
   renewable    = true
   ttl          = "24h"
   period       = "24h"
+
+  depends_on = [
+    vault_policy.boundary_controller_policy,
+    vault_policy.ssh-policy,
+    vault_policy.policy-database,
+    vault_policy.policy_windows_rdp,
+  ]
 }
+
 
 //Credential store for Vault
 resource "boundary_credential_store_vault" "vault_cred_store" {
