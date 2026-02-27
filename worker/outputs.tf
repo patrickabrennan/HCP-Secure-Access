@@ -100,11 +100,11 @@ output "boundary_db_demo_subnet2_id" {
 #  value = aws_security_group.allow_all.id
 #}
 
-output "rds_sg_id" {
-  value = aws_security_group.rds.id
-}
+#output "rds_sg_id" {
+#  value = aws_security_group.rds.id
+#}
 
-output "boundary_target_sg_id" {
-  value = aws_security_group.boundary_target.id
-}
+#output "boundary_target_sg_id" {
+#  value = aws_security_group.boundary_target.id
+#}
 
