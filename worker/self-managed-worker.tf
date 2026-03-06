@@ -26,8 +26,35 @@ locals {
   [Unit]
   Description="HashiCorp Boundary - Identity-based access management for dynamic infrastructure"
   Documentation=https://www.boundaryproject.io/docs
-  #StartLimitIntervalSec=60
-  #StartLimitBurst=3
+
+  # Delay startup until the primary ENI has a routable IP.  "network.target"
+  # only means the network subsystem has initialised; "network-online.target"
+  # means at least one interface is fully configured.  Without this, boundary
+  # can start (and fail) before the instance has connectivity to HCP on reboots.
+  # Wants= (not Requires=) so the unit isn't permanently blocked if the target
+  # is masked or takes unusually long.
+  After=network-online.target
+  Wants=network-online.target
+
+  # Wait for chrony (pointed at the AWS Time Sync Service, 169.254.169.123 on
+  # AL2023) to complete its first synchronisation.  The PKI activation token
+  # and all subsequent TLS handshakes with HCP are time-sensitive; a skewed
+  # clock produces validation errors that are difficult to diagnose.
+  # time-sync.target is activated by systemd-time-wait-sync.service once chrony
+  # reports a good initial sample.
+  After=time-sync.target
+  Wants=time-sync.target
+
+  # Refuse to start if the HCL config has not been written yet (e.g. a partial
+  # cloud-init run on first boot).  Fails with a clear condition message rather
+  # than a cryptic "file not found" from the boundary binary.
+  ConditionPathExists=/etc/boundary.d/pki-worker.hcl
+
+  # Cap restart attempts so a persistent failure (bad token, missing config,
+  # etc.) doesn't spin indefinitely.  With Restart=on-failure below, systemd
+  # will give up after 3 starts within 60 s and require manual intervention.
+  StartLimitIntervalSec=60
+  StartLimitBurst=3
 
   [Service]
   EnvironmentFile=-/etc/boundary.d/boundary.env
@@ -35,6 +62,15 @@ locals {
   Group=boundary
   #ProtectSystem=full
   #ProtectHome=read-only
+
+  # ExecStartPre retries the IMDS public-ipv4 query for up to ~60 s (30 × 2 s),
+  # then boundary itself needs time to reach HCP and complete registration.
+  # The default TimeoutStartSec=90 s is too tight; 120 s gives comfortable
+  # headroom without masking genuine hangs.
+  TimeoutStartSec=120
+
+  # Run as root (+) so the script can write to /etc/boundary.d/public_addr and
+  # set ownership before dropping to the boundary user for ExecStart.
   ExecStartPre=+/usr/local/bin/boundary-fetch-addr
   ExecStart=/usr/bin/boundary server -config=/etc/boundary.d/pki-worker.hcl
   ExecReload=/bin/kill --signal HUP $MAINPID
