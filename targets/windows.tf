@@ -1,29 +1,23 @@
 # Windows Target
 data "aws_ami" "windows" {
-  
+  most_recent = true
+  owners      = ["amazon"]
+
   filter {
     name   = "name"
-    #values = ["Windows_Server-2022-English-Full-Base-*"]
-    values = ["hc-base-windows-server-2025-x64-20260225221354"]
+    values = ["Windows_Server-2022-English-Full-Base-*"]
   }
 
-filter {
-    name   = "state"
-    values = ["available"]
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
   }
-  
-  most_recent = true
-  owners      = ["888995627335"] # ami-prod account
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
 }
-  #filter {
-  #  name   = "root-device-type"
-  #  values = ["ebs"]
-  #}
-
-  #filter {
-  #  name   = "virtualization-type"
-  #  values = ["hvm"]
-  #}
 
 resource "aws_instance" "rdp_target" {
   ami                         = data.aws_ami.windows.id
