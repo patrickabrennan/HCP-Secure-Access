@@ -47,18 +47,18 @@ TOKEN="$(curl -sf -X PUT "http://169.254.169.254/latest/api/token" \
 
 IP=""
 for i in $(seq 1 30); do
-  IP="$(curl -sf -H "X-aws-ec2-metadata-token: ${TOKEN}" \
+  IP="$(curl -sf -H "X-aws-ec2-metadata-token: $${TOKEN}" \
     http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || true)"
-  [ -n "$IP" ] && break
+  [ -n "$${IP}" ] && break
   sleep 2
 done
 
-if [ -z "$IP" ]; then
-  IP="$(curl -sf -H "X-aws-ec2-metadata-token: ${TOKEN}" \
+if [ -z "$${IP}" ]; then
+  IP="$(curl -sf -H "X-aws-ec2-metadata-token: $${TOKEN}" \
     http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null || true)"
 fi
 
-if [ -z "$IP" ]; then
+if [ -z "$${IP}" ]; then
   echo "Unable to determine instance IP from EC2 metadata" >&2
   exit 1
 fi
@@ -74,7 +74,7 @@ listener "tcp" {
 }
 
 worker {
-  public_addr = "${IP}:9202"
+  public_addr = "$${IP}:9202"
   auth_storage_path = "/etc/boundary.d/worker"
   recording_storage_path = "/etc/boundary.d/sessionrecord"
   controller_generated_activation_token = "${boundary_worker.self_managed_pki_worker.controller_generated_activation_token}"
@@ -180,8 +180,6 @@ resource "aws_instance" "boundary_self_managed_worker" {
     boundary_worker.self_managed_pki_worker
   ]
 }
-
-
 
 
 
