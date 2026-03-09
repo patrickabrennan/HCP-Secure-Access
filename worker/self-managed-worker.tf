@@ -1,3 +1,200 @@
+resource "boundary_worker" "self_managed_pki_worker" {
+  scope_id                    = "global"
+  name                        = "boundary-aws-worker"
+  worker_generated_auth_token = ""
+}
+
+locals {
+  boundary_worker_service_config = <<-SERVICE
+[Unit]
+Description=HashiCorp Boundary - Identity-based access management for dynamic infrastructure
+Documentation=https://developer.hashicorp.com/boundary
+After=network-online.target time-sync.target
+Wants=network-online.target time-sync.target
+ConditionPathExists=/usr/local/bin/render-boundary-worker-config
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+EnvironmentFile=-/etc/boundary.d/boundary.env
+User=boundary
+Group=boundary
+TimeoutStartSec=120
+ExecStartPre=+/usr/local/bin/render-boundary-worker-config
+ExecStart=/usr/bin/boundary server -config=/etc/boundary.d/pki-worker.hcl
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+
+  render_boundary_worker_config_script = <<-SCRIPT
+#!/bin/bash
+set -euo pipefail
+
+mkdir -p /etc/boundary.d
+mkdir -p /etc/boundary.d/worker
+mkdir -p /etc/boundary.d/sessionrecord
+
+TOKEN="$(curl -sf -X PUT "http://169.254.169.254/latest/api/token" \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)"
+
+IP=""
+for i in $(seq 1 30); do
+  IP="$(curl -sf -H "X-aws-ec2-metadata-token: ${TOKEN}" \
+    http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || true)"
+  [ -n "$IP" ] && break
+  sleep 2
+done
+
+if [ -z "$IP" ]; then
+  IP="$(curl -sf -H "X-aws-ec2-metadata-token: ${TOKEN}" \
+    http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null || true)"
+fi
+
+if [ -z "$IP" ]; then
+  echo "Unable to determine instance IP from EC2 metadata" >&2
+  exit 1
+fi
+
+cat > /etc/boundary.d/pki-worker.hcl <<EOF
+disable_mlock = true
+
+hcp_boundary_cluster_id = "${split(".", split("//", var.boundary_addr)[1])[0]}"
+
+listener "tcp" {
+  address = "0.0.0.0:9202"
+  purpose = "proxy"
+}
+
+worker {
+  public_addr = "${IP}:9202"
+  auth_storage_path = "/etc/boundary.d/worker"
+  recording_storage_path = "/etc/boundary.d/sessionrecord"
+  controller_generated_activation_token = "${boundary_worker.self_managed_pki_worker.controller_generated_activation_token}"
+
+  tags {
+    type = ["self-managed-aws-worker"]
+  }
+}
+EOF
+
+chown -R boundary:boundary /etc/boundary.d
+chmod 700 /etc/boundary.d/worker
+chmod 700 /etc/boundary.d/sessionrecord
+chmod 640 /etc/boundary.d/pki-worker.hcl
+SCRIPT
+
+  cloudinit_boundary_worker = {
+    write_files = [
+      {
+        path        = "/etc/systemd/system/boundary.service"
+        content     = local.boundary_worker_service_config
+        permissions = "0644"
+      },
+      {
+        path        = "/usr/local/bin/render-boundary-worker-config"
+        content     = local.render_boundary_worker_config_script
+        permissions = "0755"
+      }
+    ]
+  }
+}
+
+data "cloudinit_config" "boundary_self_managed_worker" {
+  gzip          = false
+  base64_encode = true
+
+  part {
+    content_type = "text/x-shellscript"
+    content      = <<-EOF
+#!/bin/bash
+set -euo pipefail
+
+if command -v dnf >/dev/null 2>&1; then
+  dnf install -y shadow-utils yum-utils curl || true
+  rpm -q boundary-enterprise >/dev/null 2>&1 || {
+    yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+    dnf install -y boundary-enterprise
+  }
+else
+  yum install -y shadow-utils yum-utils curl || true
+  rpm -q boundary-enterprise >/dev/null 2>&1 || {
+    yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+    yum install -y boundary-enterprise
+  }
+fi
+
+id boundary >/dev/null 2>&1 || useradd --system --home /etc/boundary.d --shell /sbin/nologin boundary
+
+mkdir -p /etc/boundary.d
+mkdir -p /etc/boundary.d/worker
+mkdir -p /etc/boundary.d/sessionrecord
+
+chown -R boundary:boundary /etc/boundary.d
+chmod 700 /etc/boundary.d/worker
+chmod 700 /etc/boundary.d/sessionrecord
+EOF
+  }
+
+  part {
+    content_type = "text/cloud-config"
+    content      = yamlencode(local.cloudinit_boundary_worker)
+  }
+
+  part {
+    content_type = "text/x-shellscript"
+    content      = <<-EOF
+#!/bin/bash
+set -euo pipefail
+
+systemctl daemon-reload
+systemctl enable boundary
+systemctl restart boundary
+EOF
+  }
+}
+
+resource "aws_instance" "boundary_self_managed_worker" {
+  ami                         = var.aws_ami
+  key_name                    = var.admin_key_name != "" ? var.admin_key_name : null
+  instance_type               = var.aws_instance_type
+  availability_zone           = var.availability_zone
+  user_data_replace_on_change = true
+  user_data_base64            = data.cloudinit_config.boundary_self_managed_worker.rendered
+  subnet_id                   = aws_subnet.boundary_db_demo_subnet.id
+  vpc_security_group_ids      = [aws_security_group.boundary_ingress_worker_ssh.id]
+  iam_instance_profile        = aws_iam_instance_profile.boundary_worker_instance_profile.name
+
+  tags = {
+    Name = "Boundary Self-Managed Worker"
+  }
+
+  depends_on = [
+    boundary_worker.self_managed_pki_worker
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
 /* Define a Boundary worker. The worker_generated_auth_token should
 always be left as "" if you are deploying a Controller-led authorisation flow.
 This will result in the controller generating the one-time token to use, that must be
@@ -254,3 +451,4 @@ resource "aws_instance" "boundary_self_managed_worker" {
  #   prevent_destroy = true
  # }
 }
+*/
