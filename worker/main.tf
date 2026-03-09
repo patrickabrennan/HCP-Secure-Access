@@ -1,3 +1,99 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 4.46.0"
+    }
+    boundary = {
+      source  = "hashicorp/boundary"
+      version = ">= 1.3.1"
+    }
+    cloudinit = {
+      source  = "hashicorp/cloudinit"
+      version = ">= 2.3.2"
+    }
+    external = {
+      source  = "hashicorp/external"
+      version = ">= 2.3.3"
+    }
+    hcp = {
+      source  = "hashicorp/hcp"
+      version = ">= 0.56.0"
+    }
+    http = {
+      source  = "hashicorp/http"
+      version = ">= 3.2.1"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.6.1"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = ">= 0.9.1"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = ">= 4.0.4"
+    }
+    vault = {
+      source  = "hashicorp/vault"
+      version = ">= 4.2.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
+provider "vault" {
+  skip_child_token = true
+  address          = var.tfc_vault_dynamic_credentials.default.address
+  namespace        = var.tfc_vault_dynamic_credentials.default.namespace
+
+  auth_login_token_file {
+    filename = var.tfc_vault_dynamic_credentials.default.token_filename
+  }
+}
+
+provider "vault" {
+  alias            = "ALIAS1"
+  skip_child_token = true
+  address          = var.tfc_vault_dynamic_credentials.aliases["ALIAS1"].address
+  namespace        = var.tfc_vault_dynamic_credentials.aliases["ALIAS1"].namespace
+
+  auth_login_token_file {
+    filename = var.tfc_vault_dynamic_credentials.aliases["ALIAS1"].token_filename
+  }
+}
+
+provider "boundary" {
+  addr                   = var.boundary_addr
+  auth_method_login_name = var.password_auth_method_login_name
+  auth_method_password   = var.password_auth_method_password
+}
+
+provider "time" {}
+
+resource "random_pet" "unique_names" {}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 # Declare the required providers and their version constraints for this Terraform configuration
 terraform {
   required_providers {
@@ -94,4 +190,4 @@ resource "random_pet" "unique_names" {
 #provider "aws" {}
 provider "time" {}
 
-
+*/
