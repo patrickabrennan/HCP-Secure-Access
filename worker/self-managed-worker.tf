@@ -426,10 +426,10 @@ data "cloudinit_config" "boundary_self-managed_worker" {
   }
 }
 
-/* Create the Boundary worker instance and specify the data block in the user_data_base64
-parameter. The depends_on argument is set to ensure that the networking is establish first
-and that the boundary_worker resource also completes, to ensure the token is generated first.
-*/
+#Create the Boundary worker instance and specify the data block in the user_data_base64
+#parameter. The depends_on argument is set to ensure that the networking is establish first
+#and that the boundary_worker resource also completes, to ensure the token is generated first.
+
 resource "aws_instance" "boundary_self_managed_worker" {
   ami                         = var.aws_ami
   key_name                    = "sap"
