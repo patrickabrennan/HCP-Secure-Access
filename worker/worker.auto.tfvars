@@ -34,3 +34,4 @@ vault_kv_secret_path  = "boundary/rdp/svc"
 rdp_vault_creds_path  = "kv-rdp/boundary/rdp/svc"
 create_kv_mount       = true
 
+admin_key_name = "sap"
