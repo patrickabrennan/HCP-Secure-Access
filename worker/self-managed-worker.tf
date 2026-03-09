@@ -195,11 +195,11 @@ resource "aws_instance" "boundary_self_managed_worker" {
 
 /*
 
-/* Define a Boundary worker. The worker_generated_auth_token should
-always be left as "" if you are deploying a Controller-led authorisation flow.
-This will result in the controller generating the one-time token to use, that must be
-passed into the worker configuration file.
-*/
+# Define a Boundary worker. The worker_generated_auth_token should
+#always be left as "" if you are deploying a Controller-led authorisation flow.
+#This will result in the controller generating the one-time token to use, that must be
+#passed into the worker configuration file.
+#
 resource "boundary_worker" "self_managed_pki_worker" {
   scope_id                    = "global" 
   name                        = "bounday-aws-worker"
