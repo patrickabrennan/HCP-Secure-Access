@@ -196,7 +196,8 @@ data "cloudinit_config" "boundary_self-managed_worker" {
       #!/bin/bash
       set -euo pipefail
 
-      sudo yum install -y shadow-utils yum-utils curl
+      sudo yum install --best --allowerasing -y shadow-utils yum-utils curl
+      #sudo yum install -y shadow-utils yum-utils curl
       sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
       sudo yum -y install boundary-enterprise
 
