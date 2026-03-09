@@ -26,8 +26,35 @@ locals {
   [Unit]
   Description="HashiCorp Boundary - Identity-based access management for dynamic infrastructure"
   Documentation=https://www.boundaryproject.io/docs
-  #StartLimitIntervalSec=60
-  #StartLimitBurst=3
+
+  # Delay startup until the primary ENI has a routable IP.  "network.target"
+  # only means the network subsystem has initialised; "network-online.target"
+  # means at least one interface is fully configured.  Without this, boundary
+  # can start (and fail) before the instance has connectivity to HCP on reboots.
+  # Wants= (not Requires=) so the unit isn't permanently blocked if the target
+  # is masked or takes unusually long.
+  After=network-online.target
+  Wants=network-online.target
+
+  # Wait for chrony (pointed at the AWS Time Sync Service, 169.254.169.123 on
+  # AL2023) to complete its first synchronisation.  The PKI activation token
+  # and all subsequent TLS handshakes with HCP are time-sensitive; a skewed
+  # clock produces validation errors that are difficult to diagnose.
+  # time-sync.target is activated by systemd-time-wait-sync.service once chrony
+  # reports a good initial sample.
+  After=time-sync.target
+  Wants=time-sync.target
+
+  # Refuse to start if the HCL config has not been written yet (e.g. a partial
+  # cloud-init run on first boot).  Fails with a clear condition message rather
+  # than a cryptic "file not found" from the boundary binary.
+  ConditionPathExists=/etc/boundary.d/pki-worker.hcl
+
+  # Cap restart attempts so a persistent failure (bad token, missing config,
+  # etc.) doesn't spin indefinitely.  With Restart=on-failure below, systemd
+  # will give up after 3 starts within 60 s and require manual intervention.
+  StartLimitIntervalSec=60
+  StartLimitBurst=3
 
   [Service]
   EnvironmentFile=-/etc/boundary.d/boundary.env
@@ -35,6 +62,16 @@ locals {
   Group=boundary
   #ProtectSystem=full
   #ProtectHome=read-only
+
+  # ExecStartPre retries the IMDS public-ipv4 query for up to ~60 s (30 × 2 s),
+  # then boundary itself needs time to reach HCP and complete registration.
+  # The default TimeoutStartSec=90 s is too tight; 120 s gives comfortable
+  # headroom without masking genuine hangs.
+  TimeoutStartSec=120
+
+  # Run as root (+) so the script can write to /etc/boundary.d/public_addr and
+  # set ownership before dropping to the boundary user for ExecStart.
+  ExecStartPre=+/usr/local/bin/boundary-fetch-addr
   ExecStart=/usr/bin/boundary server -config=/etc/boundary.d/pki-worker.hcl
   ExecReload=/bin/kill --signal HUP $MAINPID
   KillMode=process
@@ -59,7 +96,7 @@ locals {
   }
 
   worker {
-    public_addr = "file:///tmp/ip"
+    public_addr = "file:///etc/boundary.d/public_addr"
     auth_storage_path = "/etc/boundary.d/worker"
     recording_storage_path = "/etc/boundary.d/sessionrecord"
     controller_generated_activation_token = "${boundary_worker.self_managed_pki_worker.controller_generated_activation_token}"
@@ -68,6 +105,61 @@ locals {
     }
   }
 WORKER_HCL_CONFIG
+
+  boundary_fetch_addr_script = <<-FETCH_ADDR_SCRIPT
+  #!/bin/bash
+  # Resolves the EC2 instance's public IPv4 address and writes it (with the
+  # Boundary proxy port) to /etc/boundary.d/public_addr, which pki-worker.hcl
+  # reads via: public_addr = "file:///etc/boundary.d/public_addr"
+  #
+  # This script runs as root via ExecStartPre=+ each time the boundary service
+  # starts, so the address is always current (handles EIP reassignment, etc.).
+  # Doing this at service-start time — rather than cloud-init time — avoids the
+  # race where the public IP is not yet visible through IMDS on first boot.
+  set -euo pipefail
+
+  # Obtain an IMDSv2 session token. The TTL only needs to outlive this script;
+  # 21600 s (6 h) is the maximum allowed and is the conventional value to use.
+  # "|| true" prevents set -e from aborting if IMDS is momentarily unreachable.
+  TOKEN=$(curl -sf -X PUT "http://169.254.169.254/latest/api/token" \
+    -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)
+
+  # Poll the public-ipv4 metadata key until it is populated.  On a freshly
+  # launched instance with map_public_ip_on_launch=true, AWS may take several
+  # seconds to associate the public IP, so the IMDS key returns empty until
+  # that association is complete.  Retry for up to ~60 s (30 × 2 s) before
+  # giving up and falling back to the private IP.
+  IP=""
+  for i in $(seq 1 30); do
+    IP=$(curl -sf -H "X-aws-ec2-metadata-token: $TOKEN" \
+      "http://169.254.169.254/latest/meta-data/public-ipv4" 2>/dev/null || true)
+    [ -n "$IP" ] && break
+    sleep 2
+  done
+
+  # If no public IP was found (private-only subnet, or EIP not yet attached),
+  # fall back to the primary private IPv4.  Boundary will still function for
+  # targets reachable via private routing; the worker just won't be reachable
+  # from the public internet on this address.
+  if [ -z "$IP" ]; then
+    IP=$(curl -sf -H "X-aws-ec2-metadata-token: $TOKEN" \
+      "http://169.254.169.254/latest/meta-data/local-ipv4" || true)
+  fi
+
+  # If we still have nothing, abort — starting boundary with an empty
+  # public_addr file would produce a confusing runtime error.
+  if [ -z "$IP" ]; then
+    echo "boundary-fetch-addr: could not determine any IP address" >&2
+    exit 1
+  fi
+
+  # Write the address in host:port form.  Port 9202 must match the listener
+  # block in pki-worker.hcl.  The boundary process reads this file at startup.
+  echo "$IP:9202" > /etc/boundary.d/public_addr
+  # Ensure the boundary user can read the file (the service runs as boundary:boundary).
+  chown boundary:boundary /etc/boundary.d/public_addr
+  chmod 0644 /etc/boundary.d/public_addr
+  FETCH_ADDR_SCRIPT
 
   cloudinit_config_boundary_self-managed_worker = {
     write_files = [
@@ -78,6 +170,11 @@ WORKER_HCL_CONFIG
       {
         content = local.boundary_self-managed_worker_hcl_config
         path    = "/etc/boundary.d/pki-worker.hcl"
+      },
+      {
+        content     = local.boundary_fetch_addr_script
+        path        = "/usr/local/bin/boundary-fetch-addr"
+        permissions = "0755"
       },
     ]
   }
@@ -103,27 +200,8 @@ data "cloudinit_config" "boundary_self-managed_worker" {
       sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
       sudo yum -y install boundary-enterprise
 
-      # Used by worker config: public_addr = "file:///tmp/ip"
-      # Prefer public IPv4 (public subnet). Fallback to private IPv4 if no public IP exists.
-      TOKEN=$(curl -sX PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" || true)
-
-      PUBIP=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null || true)
-
-      PRIVIP=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/local-ipv4 2>/dev/null || true)
-
-      #IP="$${PUBIP:-$PRIVIP}"
-      #if [ -z "$IP" ]; then
-      #  IP=$$(hostname -I | awk '{print $1}' || true)
-      #fi
-
-      # IMPORTANT: include the worker listener port
-      echo "$PUBIP:9202" > /tmp/ip
-
-      # Make sure boundary user can read it
-      sudo chown boundary:boundary /tmp/ip
-      sudo chmod 0644 /tmp/ip
-
       # REQUIRED: worker writes to these paths; service runs as boundary:boundary
+      # public_addr is populated at service start by ExecStartPre=/usr/local/bin/boundary-fetch-addr
       sudo mkdir -p /etc/boundary.d/sessionrecord /etc/boundary.d/worker
       sudo chown -R boundary:boundary /etc/boundary.d
       sudo chmod 700 /etc/boundary.d/worker
