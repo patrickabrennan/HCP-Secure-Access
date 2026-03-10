@@ -1,3 +1,68 @@
+############################################
+# Windows RDP Target Instance
+############################################
+
+locals {
+  admin_password = trimspace(
+    try(
+      rsadecrypt(aws_instance.rdp_target.password_data, var.admin_key_private_pem),
+      var.decrypted_admin_password,
+      ""
+    )
+  )
+}
+
+resource "aws_instance" "rdp_target" {
+
+  ami               = var.windows_ami
+  instance_type     = var.aws_instance_type
+  availability_zone = var.availability_zone
+
+  subnet_id              = local.boundary_target_subnet_id
+  vpc_security_group_ids = [local.boundary_target_sg_id]
+
+  get_password_data = true
+
+  key_name = var.admin_key_name != "" ? var.admin_key_name : null
+
+  user_data = <<EOF
+<powershell>
+
+Set-ItemProperty `
+  -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" `
+  -Name "fDenyTSConnections" `
+  -Value 0
+
+Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+</powershell>
+EOF
+
+  tags = {
+    Name = "rdp-target"
+    Team = "IT"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 # Windows Target
 data "aws_ami" "windows" {
   most_recent = true
@@ -52,3 +117,4 @@ locals {
     ""
   )
 }
+*/
