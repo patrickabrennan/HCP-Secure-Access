@@ -1,5 +1,5 @@
 resource "aws_instance" "boundary_public_target" {
-  ami               = var.aws_ami
+  ami               = var.amazon_linux_aws_ami
   instance_type     = "t2.micro"
   availability_zone = var.availability_zone
 
