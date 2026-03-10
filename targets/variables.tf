@@ -31,7 +31,7 @@ variable "availability_zone2" {
   default = "us-east-1b"
 }
 
-variable "aws_ami" {
+variable "amazon_linux_aws_ami" {
   type        = string
   description = "Optional override for AMI. If empty, the Windows data source is used."
   default     = ""
