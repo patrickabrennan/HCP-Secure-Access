@@ -1,4 +1,28 @@
 ############################################
+# Windows AMI
+############################################
+
+data "aws_ami" "windows" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["Windows_Server-2022-English-Full-Base-*"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+############################################
 # Windows RDP Target Instance
 ############################################
 
@@ -13,28 +37,24 @@ locals {
 }
 
 resource "aws_instance" "rdp_target" {
-
-  ami               = var.windows_ami
+  ami               = data.aws_ami.windows.id
   instance_type     = var.aws_instance_type
   availability_zone = var.availability_zone
 
-  subnet_id              = local.boundary_target_subnet_id
+  subnet_id              = local.boundary_db_demo_subnet_id
   vpc_security_group_ids = [local.boundary_target_sg_id]
 
   get_password_data = true
-
-  key_name = var.admin_key_name != "" ? var.admin_key_name : null
+  key_name          = var.admin_key_name != "" ? var.admin_key_name : null
 
   user_data = <<EOF
 <powershell>
-
 Set-ItemProperty `
   -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" `
   -Name "fDenyTSConnections" `
   -Value 0
 
 Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-
 </powershell>
 EOF
 
@@ -43,10 +63,6 @@ EOF
     Team = "IT"
   }
 }
-
-
-
-
 
 
 
