@@ -1,3 +1,79 @@
+############################################
+# Boundary Vault Credential Store
+############################################
+
+resource "boundary_credential_store_vault" "vault_cred_store" {
+  name        = "vault-credential-store"
+  description = "Vault credential store"
+  address     = var.vault_addr
+  token       = var.vault_token
+  scope_id    = local.project_scope_id
+}
+
+############################################
+# SSH Certificate Library
+############################################
+
+resource "boundary_credential_library_vault_ssh_certificate" "vault_ssh_cert" {
+  name                = "vault-ssh-cert"
+  credential_store_id = boundary_credential_store_vault.vault_cred_store.id
+  path                = "ssh-client-signer/sign/boundary-client"
+  username            = "ec2-user"
+}
+
+############################################
+# RDP Credential Library (FIXED)
+############################################
+
+resource "boundary_credential_library_vault" "rdp_vault_creds" {
+  name                = "rdp-vault-creds"
+  description         = "RDP credentials from Vault KV"
+  credential_store_id = boundary_credential_store_vault.vault_cred_store.id
+
+  path            = var.rdp_vault_creds_path
+  http_method     = "GET"
+  credential_type = "username_password"
+
+  # REQUIRED FOR KV SECRET PARSING
+  credential_mapping_overrides = {
+    username = "data.username"
+    password = "data.password"
+  }
+}
+
+############################################
+# Database Credential Library
+############################################
+
+resource "boundary_credential_library_vault" "vault_cred_lib" {
+  name                = "vault-db-creds"
+  credential_store_id = boundary_credential_store_vault.vault_cred_store.id
+  path                = "database/creds/dba"
+  http_method         = "GET"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
 //Create a periodic, orphan token for Boundary with the attached policies
 resource "vault_token" "boundary_vault_token" {
   display_name = "boundary-token"
@@ -102,7 +178,7 @@ resource "boundary_credential_library_vault" "rdp_vault_creds" {
 #end add 9-25-2025
 #end comment out
 
-
+*/
 
 
 
