@@ -166,7 +166,7 @@ resource "aws_instance" "boundary_self_managed_worker" {
   key_name                    = var.admin_key_name != "" ? var.admin_key_name : null
   instance_type               = var.aws_instance_type
   availability_zone           = var.availability_zone
-  user_data_replace_on_change = true
+  user_data_replace_on_change = false #true
   user_data_base64            = data.cloudinit_config.boundary_self_managed_worker.rendered
   subnet_id                   = aws_subnet.boundary_db_demo_subnet.id
   vpc_security_group_ids      = [aws_security_group.boundary_ingress_worker_ssh.id]
