@@ -2,7 +2,7 @@
 # Windows AMI
 ############################################
 
-/*
+
 data "aws_ami" "windows" {
   most_recent = true
   owners      = ["amazon"]
@@ -22,8 +22,8 @@ data "aws_ami" "windows" {
     values = ["hvm"]
   }
 }
-*/
 
+/*
 data "aws_ami" "windows" {
   most_recent = true
   owners      = ["888995627335"]
@@ -43,6 +43,7 @@ data "aws_ami" "windows" {
     values = ["hvm"]
   }
 }
+*/
 
 ############################################
 # Windows RDP Target Instance
