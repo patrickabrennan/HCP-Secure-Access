@@ -39,7 +39,7 @@ variable "amazon_linux_aws_ami" {
 
 variable "aws_instance_type" {
   type    = string
-  default = "m6a.xlarge"
+  default = "m6a.4xlarge"
 }
 
 variable "admin_key_name" {
