@@ -2,7 +2,31 @@
 # Windows AMI
 ############################################
 
+data "aws_ami" "windows" {
+  most_recent = true
+  owners      = ["888995627335"]
 
+  filter {
+    name   = "name"
+    values = ["hc-base-windows-server-2025-full-x64-*"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+
+
+
+
+/*
 data "aws_ami" "windows" {
   most_recent = true
   owners      = ["amazon"]
@@ -22,6 +46,9 @@ data "aws_ami" "windows" {
     values = ["hvm"]
   }
 }
+*/
+
+
 
 /*
 data "aws_ami" "windows" {
