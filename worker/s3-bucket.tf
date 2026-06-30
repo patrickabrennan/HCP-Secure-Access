@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "boundary_session_recording_bucket" {
   #bucket        = "${random_pet.unique_names.id}-bucket"
-  6/30/2026
+  #added 6/30/2026
   bucket = var.s3_bucket_name
   force_destroy = true
   tags = {
