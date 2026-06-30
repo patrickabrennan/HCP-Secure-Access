@@ -35,5 +35,3 @@ rdp_vault_creds_path  = "kv-rdp/boundary/rdp/svc"
 create_kv_mount       = true
 
 admin_key_name = "sap"
-
-s3_bucket_name = "pb-s3-hcpb-bucket"
