@@ -22,16 +22,19 @@ resource "vault_mount" "kv_rdp" {
 #}
 
 #added 6/30/2026
-resource "vault_generic_secret" "rdp_admin" {
-  path = "${var.vault_kv_mount_path}/${var.vault_kv_secret_path}"
+resource "boundary_credential_library_vault" "rdp_vault_creds" {
+  name                = "rdp-vault-creds"
+  credential_store_id = boundary_credential_store_vault.vault_cred_store.id
+  path                = var.rdp_vault_creds_path
+  http_method         = "GET"
 
-  data_json = jsonencode({
-    username = "Administrator"
-    password = trimspace(local.admin_password)
-    domain   = "."
-  })
+  credential_type = "username_password_domain"
 
-  depends_on = [vault_mount.kv_rdp]
+  credential_mapping_overrides = {
+    username_attribute = "username"
+    password_attribute = "password"
+    domain_attribute   = "domain"
+  }
 }
 
 
