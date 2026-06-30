@@ -9,19 +9,30 @@ resource "vault_mount" "kv_rdp" {
   }
 }
 
+#commented out 6/30/2026
+#resource "vault_generic_secret" "rdp_admin" {
+#  path = "${var.vault_kv_mount_path}/${var.vault_kv_secret_path}"
+#
+#  data_json = jsonencode({
+#    username = "Administrator"
+#    password = trimspace(local.admin_password)
+#  })
+#
+#  depends_on = [vault_mount.kv_rdp]
+#}
+
+#added 6/30/2026
 resource "vault_generic_secret" "rdp_admin" {
   path = "${var.vault_kv_mount_path}/${var.vault_kv_secret_path}"
 
   data_json = jsonencode({
     username = "Administrator"
     password = trimspace(local.admin_password)
+    domain   = "."
   })
 
   depends_on = [vault_mount.kv_rdp]
 }
-
-
-
 
 
 
