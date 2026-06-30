@@ -195,6 +195,11 @@ resource "boundary_target" "aws" {
   #PB vommnet out temp. 
   #enable_session_recording                   = true
   #storage_bucket_id                          = boundary_storage_bucket.boundary_storage_bucket.id
+
+  #Added in 6/30/2026
+  enable_session_recording = true
+  storage_bucket_id        = boundary_storage_bucket.boundary_storage_bucket.id
+
   injected_application_credential_source_ids = [boundary_credential_library_vault_ssh_certificate.vault_ssh_cert.id]
 }
 
