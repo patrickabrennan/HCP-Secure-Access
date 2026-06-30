@@ -29,12 +29,6 @@ resource "boundary_credential_library_vault" "rdp_vault_creds" {
   http_method         = "GET"
 
   credential_type = "username_password_domain"
-
-  credential_mapping_overrides = {
-    username_attribute = "username"
-    password_attribute = "password"
-    domain_attribute   = "domain"
-  }
 }
 
 
