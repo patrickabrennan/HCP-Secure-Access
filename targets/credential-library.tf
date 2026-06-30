@@ -73,15 +73,30 @@ resource "boundary_credential_store_static" "boundary_cred_store" {
 #  }
 #}
 
+#commented out on 6/30/2026
+#resource "boundary_credential_library_vault" "rdp_vault_creds" {
+#  name                = "rdp-vault-creds"
+#  credential_store_id = boundary_credential_store_vault.vault_cred_store.id
+#  path                = var.rdp_vault_creds_path
+#  http_method         = "GET"
+#  credential_type     = "username_password"
+#}
+
+#repaced above with this on 6/30/2026
 resource "boundary_credential_library_vault" "rdp_vault_creds" {
   name                = "rdp-vault-creds"
   credential_store_id = boundary_credential_store_vault.vault_cred_store.id
   path                = var.rdp_vault_creds_path
   http_method         = "GET"
-  credential_type     = "username_password"
+
+  credential_type = "username_password_domain"
+
+  credential_mapping_overrides = {
+    username = "username"
+    password = "password"
+    domain   = "domain"
+  }
 }
-
-
 
 
 
