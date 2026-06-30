@@ -108,3 +108,11 @@ output "boundary_target_sg_id" {
   value = aws_security_group.boundary_target.id
 }
 
+#add output for S3 buckets
+output "boundary_session_recording_bucket_name" {
+  value = aws_s3_bucket.boundary_session_recording_bucket.bucket
+}
+
+output "boundary_session_recording_bucket_arn" {
+  value = aws_s3_bucket.boundary_session_recording_bucket.arn
+}
