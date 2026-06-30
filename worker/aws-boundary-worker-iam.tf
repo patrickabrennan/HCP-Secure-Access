@@ -111,3 +111,40 @@ resource "aws_iam_role_policy" "worker_assume_discovery_policy" {
   role   = aws_iam_role.boundary_worker_role.id
   policy = data.aws_iam_policy_document.worker_assume_discovery.json
 }
+
+
+#add S3 bucket perm. 
+data "aws_iam_policy_document" "boundary_worker_s3_recording" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListBucket"
+    ]
+
+    resources = [
+      aws_s3_bucket.boundary_session_recording_bucket.arn
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject"
+    ]
+
+    resources = [
+      "${aws_s3_bucket.boundary_session_recording_bucket.arn}/*"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "boundary_worker_s3_recording" {
+  name   = "boundary-worker-s3-recording"
+  role   = aws_iam_role.boundary_worker_role.id
+  policy = data.aws_iam_policy_document.boundary_worker_s3_recording.json
+}
