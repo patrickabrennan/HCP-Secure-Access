@@ -30,11 +30,7 @@ resource "vault_generic_secret" "rdp_admin" {
     password = trimspace(local.admin_password)
     domain   = "."
   })
-
-  depends_on = [vault_mount.kv_rdp]
 }
-
-
 
 
 
