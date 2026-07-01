@@ -36,11 +36,12 @@ resource "boundary_target" "rdp" {
   default_port        = 3389
   default_client_port = 3389
   host_source_ids     = [boundary_host_set_plugin.aws_rdp.id]
-}
 
   injected_application_credential_source_ids = [
     boundary_credential_library_vault.rdp_vault_creds.id
   ]
 
   enable_session_recording = true
-  storage_bucket_id = data.terraform_remote_state.recordings.outputs.boundary_storage_bucket_id
+  #storage_bucket_id        = boundary_storage_bucket.boundary_storage_bucket.id
+  storage_bucket_id        = data.terraform_remote_state.recordings.outputs.boundary_storage_bucket_id
+}
