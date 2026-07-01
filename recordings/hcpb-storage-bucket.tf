@@ -14,9 +14,7 @@ resource "boundary_storage_bucket" "boundary_storage_bucket" {
 
   worker_filter = "\"self-managed-aws-worker\" in \"/tags/type\""
 
-  # Keep the Boundary storage bucket persistent so target destroys/redeploys
-  # do not fail when recording_session metadata still references it.
-  #lifecycle {
-  #  prevent_destroy = true
-  #}
+  lifecycle {
+    prevent_destroy = true
+  }
 }
