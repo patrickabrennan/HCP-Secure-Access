@@ -23,9 +23,6 @@ db_username = "dbadmin"
 db_password = "dbpassword"
 db_name = "dbname"
 
-s3_bucket_name_tags = "session-recording"
-s3_bucket_env_tags = "boundary"
-
 #addexd 9-25-2025
 # For AD dynamic creds
 #rdp_vault_creds_path = "kv-rdp/boundary/rdp/svc"  #"ad/creds/boundary-rdp"
