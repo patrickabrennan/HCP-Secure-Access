@@ -190,6 +190,7 @@ resource "aws_instance" "boundary_self_managed_worker" {
 
 
 
+
 /*
 
 # Define a Boundary worker. The worker_generated_auth_token should
