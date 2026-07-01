@@ -23,7 +23,7 @@ resource "vault_mount" "kv_rdp" {
 
 
 
-Add 7/1/2026
+#Add 7/1/2026
 resource "vault_generic_secret" "rdp_admin" {
   path = "${var.vault_kv_mount_path}/${var.vault_kv_secret_path}"
 
