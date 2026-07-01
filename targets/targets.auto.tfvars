@@ -23,7 +23,6 @@ db_username = "dbadmin"
 db_password = "dbpassword"
 db_name = "dbname"
 
-s3_bucket_name = "pb-s3-hcpb-bucket"
 s3_bucket_name_tags = "session-recording"
 s3_bucket_env_tags = "boundary"
 
