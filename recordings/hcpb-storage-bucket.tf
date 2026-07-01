@@ -15,6 +15,6 @@ resource "boundary_storage_bucket" "boundary_storage_bucket" {
   worker_filter = "\"self-managed-aws-worker\" in \"/tags/type\""
 
   lifecycle {
-    prevent_destroy = true
+    #prevent_destroy = true
   }
 }
