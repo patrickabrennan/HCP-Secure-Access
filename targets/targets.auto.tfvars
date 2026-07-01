@@ -1,9 +1,6 @@
 tfc_org = "patrick-brennan-demo-org"
 worker_workspace_name = "worker" 
 
-
-
-
 aws_region = "us-east-1"
 availability_zone = "us-east-1a"
 availability_zone2 = "us-east-1b"
@@ -36,3 +33,4 @@ vault_kv_secret_path  = "boundary/rdp/svc"
 rdp_vault_creds_path  = "kv-rdp/boundary/rdp/svc"
 create_kv_mount       = true
 
+recordings_workspace_name = "recordings"
