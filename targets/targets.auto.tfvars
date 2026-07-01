@@ -20,6 +20,4 @@ amazon_linux_aws_ami = "ami-0ebb7d2fef090d3ce"   #"ami-070b7c2988d4e2c89"
  
 vault_kv_mount_path   = "kv-rdp"
 vault_kv_secret_path  = "boundary/rdp/svc"
-rdp_vault_creds_path  = "kv-rdp/boundary/rdp/svc"
 create_kv_mount       = true
-
