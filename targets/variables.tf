@@ -97,20 +97,6 @@ variable "db_name" {
   type = string
 }
 
-variable "s3_bucket_name" {
-  type = string
-}
-
-variable "s3_bucket_name_tags" {
-  type    = string
-  default = "session-recording"
-}
-
-variable "s3_bucket_env_tags" {
-  type    = string
-  default = "boundary"
-}
-
 variable "rdp_vault_creds_path" {
   type        = string
   description = <<-EOT
