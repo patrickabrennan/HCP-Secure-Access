@@ -82,16 +82,15 @@ resource "boundary_credential_store_static" "boundary_cred_store" {
 #  credential_type     = "username_password"
 #}
 
-#repaced above with this on 6/30/2026
+Added 7/1/2026 - back to no domain
 resource "boundary_credential_library_vault" "rdp_vault_creds" {
   name                = "rdp-vault-creds"
   credential_store_id = boundary_credential_store_vault.vault_cred_store.id
   path                = var.rdp_vault_creds_path
   http_method         = "GET"
 
-  credential_type = "username_password_domain"
+  credential_type = "username_password"
 }
-
 
 
 
