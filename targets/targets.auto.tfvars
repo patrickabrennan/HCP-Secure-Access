@@ -13,8 +13,8 @@ db_username = "dbadmin"
 
 rdp_vault_creds_path  = "kv-rdp/boundary/rdp/svc"
  
-boundary_addr = "https://0d74e37c-2b8c-47e2-b0b0-52501188d184.boundary.hashicorp.cloud"
-auth_method_id = "ampw_EQALDorSbL"
+boundary_addr = "https://61d2cdbd-d84a-4d2f-aa87-68a294d4e586.boundary.hashicorp.cloud"
+auth_method_id = "ampw_NAs4dgrGwm"
 
 amazon_linux_aws_ami = "ami-0ebb7d2fef090d3ce"   #"ami-070b7c2988d4e2c89"
  
