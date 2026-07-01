@@ -36,6 +36,7 @@ resource "boundary_target" "rdp" {
   default_port        = 3389
   default_client_port = 3389
   host_source_ids     = [boundary_host_set_plugin.aws_rdp.id]
+}
 
   injected_application_credential_source_ids = [
     boundary_credential_library_vault.rdp_vault_creds.id
