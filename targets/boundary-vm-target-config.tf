@@ -198,8 +198,8 @@ resource "boundary_target" "aws" {
 
   #Added in 6/30/2026
   enable_session_recording = true
-  storage_bucket_id        = boundary_storage_bucket.boundary_storage_bucket.id
-
+  #storage_bucket_id        = boundary_storage_bucket.boundary_storage_bucket.id
+  storage_bucket_id = data.terraform_remote_state.recordings.outputs.boundary_storage_bucket_id
   injected_application_credential_source_ids = [boundary_credential_library_vault_ssh_certificate.vault_ssh_cert.id]
 }
 
