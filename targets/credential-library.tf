@@ -59,21 +59,11 @@ resource "boundary_credential_store_static" "boundary_cred_store" {
   scope_id    = local.project_scope_id
 }
 
-#Added 7/1/2026 - back to no domain
-#resource "boundary_credential_library_vault" "rdp_vault_creds" {
-#  name                = "rdp-vault-creds"
-#  credential_store_id = boundary_credential_store_vault.vault_cred_store.id
-#  path                = var.rdp_vault_creds_path
-#  http_method         = "GET"
-#
-#  credential_type = "username_password"
-#}
-
 resource "boundary_credential_library_vault" "rdp_vault_creds" {
   name                = "rdp-vault-creds"
   credential_store_id = boundary_credential_store_vault.vault_cred_store.id
   path                = var.rdp_vault_creds_path
   http_method         = "GET"
 
-  credential_type = "username_password_domain"
+  credential_type = "username_password"
 }
