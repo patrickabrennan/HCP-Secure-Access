@@ -42,5 +42,6 @@ resource "boundary_target" "rdp" {
   ]
 
   enable_session_recording = true
-  storage_bucket_id        = boundary_storage_bucket.boundary_storage_bucket.id
+  #storage_bucket_id        = boundary_storage_bucket.boundary_storage_bucket.id
+  storage_bucket_id        = data.terraform_remote_state.recordings.outputs.boundary_storage_bucket_id
 }
