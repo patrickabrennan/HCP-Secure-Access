@@ -129,3 +129,11 @@ output "boundary_vault_token" {
 output "boundary_vault_token_policies" {
   value = vault_token.boundary_vault_token.policies
 }
+
+output "boundary_session_recording_bucket_name" {
+  value = aws_s3_bucket.boundary_session_recording_bucket.bucket
+}
+
+output "boundary_session_recording_bucket_arn" {
+  value = aws_s3_bucket.boundary_session_recording_bucket.arn
+}
