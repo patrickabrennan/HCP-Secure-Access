@@ -22,8 +22,7 @@ resource "boundary_storage_bucket" "boundary_storage_bucket" {
   scope_id    = "global"
   plugin_name = "aws"
 
-#Commented out 6/30/2026
-  #bucket_name = data.terraform_remote_state.worker.outputs.boundary_session_recording_bucket_name
+  bucket_name = data.terraform_remote_state.worker.outputs.boundary_session_recording_bucket_name
 
   attributes_json = jsonencode({
     region                      = var.aws_region
