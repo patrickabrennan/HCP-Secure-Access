@@ -80,12 +80,21 @@ provider "vault" {
 
 
 # Declare the provider for the HashiCorp Boundary resource to be managed by Terraform
+#new Boiundary provider settings
 provider "boundary" {
-  # Use variables to provide values for the provider configuration
   addr                   = var.boundary_addr
+  auth_method_id         = var.auth_method_id
   auth_method_login_name = var.password_auth_method_login_name
   auth_method_password   = var.password_auth_method_password
 }
+
+#commented out 7/1/2026
+#provider "boundary" {
+#  # Use variables to provide values for the provider configuration
+#  addr                   = var.boundary_addr
+#  auth_method_login_name = var.password_auth_method_login_name
+#  auth_method_password   = var.password_auth_method_password
+#}
 
 resource "random_pet" "unique_names" {
 }
